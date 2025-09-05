@@ -1,0 +1,21 @@
+{
+  "collections": [
+    {
+      "hasSchema": true,
+      "name": "addendum"
+    },
+    {
+      "hasSchema": true,
+      "name": "home"
+    },
+    {
+      "hasSchema": true,
+      "name": "posts"
+    }
+  ],
+  "entries": {
+    "file:///users/k1god/documents/my-blog/src/content/addendum.md": "addendum",
+    "file:///users/k1god/documents/my-blog/src/content/home.md": "home",
+    "file:///users/k1god/documents/my-blog/src/content/posts/thailand_cyber_top_talent_2025_online_senior_ctf_writeup.md": "posts"
+  }
+}

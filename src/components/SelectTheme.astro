@@ -1,7 +1,6 @@
 ---
 import '@pagefind/default-ui/css/ui.css'
 import IconPalette from '~/icons/palette.svg'
-import IconCircleX from '~/icons/circle-x.svg'
 import siteConfig from '~/site.config'
 
 function kebabToTitleCase(str: string): string {
@@ -12,180 +11,364 @@ function kebabToTitleCase(str: string): string {
 }
 ---
 
-<select-theme class="ms-auto" id="search">
+<select-theme
+  class="ms-auto relative"
+  data-themes={JSON.stringify(siteConfig.themes.include)}
+>
+  <!-- Theme Button -->
   <button
-    class="hover:text-accent flex cursor-pointer items-center justify-center rounded-md"
-    aria-keyshortcuts="Control+K Meta+K"
-    data-open-modal
-    disabled
+    class="hover:text-accent flex cursor-pointer items-center justify-center rounded-md p-2 transition-colors"
+    data-open-theme-picker
   >
-    <IconPalette class="size-6 text-accent" />
+    <IconPalette class="size-5 text-accent" />
     <span class="sr-only">Select Theme</span>
   </button>
-  <dialog
-    aria-label="select-theme"
-    class="text-foreground! bg-background max-h-5/6 max-w-5/6 border-double! border-4 border-accent/30 shadow-sm backdrop:backdrop-blur-sm open:flex mx-auto mt-16 mb-auto rounded-xl"
+
+  <!-- Theme Picker Card -->
+  <div
+    id="theme-picker-card"
+    class="absolute right-0 top-full mt-3 w-80 bg-background border border-accent/20 rounded-xl shadow-lg backdrop-blur-sm opacity-0 invisible transition-all duration-300 transform translate-y-2 z-50"
   >
-    <div class="dialog-frame flex grow flex-col gap-4 px-10 py-1 max-w-full">
-      <button
-        aria-roledescription="close"
-        class="cursor-pointer fixed top-2 right-2 rounded-full"
-        data-close-modal
-      >
-        <IconCircleX class="size-6 text-accent/50" />
-      </button>
-      <ul
-        id="theme-change-list"
-        class="flex flex-col bg-background text-accent m-0 p-2 rounded-xl"
-      >
+    <div class="p-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-1 h-4 bg-accent rounded-full"></div>
+          <h3 class="text-sm font-semibold text-foreground">Theme Color</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            class="w-6 h-6 bg-accent/20 rounded flex items-center justify-center hover:bg-accent/30 transition-colors"
+            data-reset-theme
+            title="Reset to default"
+          >
+            <svg class="w-3 h-3 text-accent" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                clip-rule="evenodd"></path>
+            </svg>
+          </button>
+          <div class="w-8 h-6 bg-accent/20 rounded flex items-center justify-center">
+            <span id="theme-index" class="text-xs font-medium text-accent">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme Slider -->
+      <div class="relative mb-4">
+        <div class="w-full h-2 bg-accent/20 rounded-lg relative" data-theme-slider>
+          <div
+            class="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-accent rounded-full cursor-pointer shadow-lg border-2 border-background"
+            id="theme-handle"
+            style="left: 0%"
+          >
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme List -->
+      <div class="space-y-1 max-h-48 overflow-y-auto">
         {
-          siteConfig.themes.include.map((theme) => (
-            <li>
-              <button class="w-full rounded-lg py-1 px-2" data-theme={theme}>
+          siteConfig.themes.include.map((theme, index) => (
+            <button
+              class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors hover:bg-accent/10 flex items-center justify-between group"
+              data-theme={theme}
+              data-theme-index={index}
+            >
+              <span class="text-foreground group-hover:text-accent">
                 {kebabToTitleCase(theme)}
-              </button>
-            </li>
+              </span>
+              <div class="w-2 h-2 bg-accent rounded-full" />
+            </button>
           ))
         }
-      </ul>
+      </div>
     </div>
-  </dialog>
+  </div>
 </select-theme>
 
 <style>
+  #theme-picker-card.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
   button.current-theme {
     background-color: color-mix(in srgb, var(--theme-accent) 8%, transparent 92%);
+  }
+
+  .theme-preview {
+    background: linear-gradient(
+      45deg,
+      var(--theme-background) 0%,
+      var(--theme-accent) 25%,
+      var(--theme-foreground) 50%,
+      var(--theme-accent) 75%,
+      var(--theme-background) 100%
+    );
+  }
+
+  /* Theme preview colors for each theme */
+  [data-theme='dark-plus'] .theme-preview {
+    background: linear-gradient(
+      45deg,
+      #1e1e1e 0%,
+      #007acc 25%,
+      #d4d4d4 50%,
+      #007acc 75%,
+      #1e1e1e 100%
+    );
+  }
+
+  [data-theme='github-light'] .theme-preview {
+    background: linear-gradient(
+      45deg,
+      #ffffff 0%,
+      #0969da 25%,
+      #24292f 50%,
+      #0969da 75%,
+      #ffffff 100%
+    );
+  }
+
+  [data-theme='github-dark'] .theme-preview {
+    background: linear-gradient(
+      45deg,
+      #0d1117 0%,
+      #58a6ff 25%,
+      #f0f6fc 50%,
+      #58a6ff 75%,
+      #0d1117 100%
+    );
+  }
+
+  [data-theme='dracula'] .theme-preview {
+    background: linear-gradient(
+      45deg,
+      #282a36 0%,
+      #ff79c6 25%,
+      #f8f8f2 50%,
+      #ff79c6 75%,
+      #282a36 100%
+    );
+  }
+
+  [data-theme='monokai'] .theme-preview {
+    background: linear-gradient(
+      45deg,
+      #272822 0%,
+      #f92672 25%,
+      #f8f8f2 50%,
+      #f92672 75%,
+      #272822 100%
+    );
+  }
+
+  /* Theme slider styles */
+  #theme-handle {
+    transition: left 0.2s ease;
+  }
+
+  [data-theme-slider]:hover #theme-handle {
+    transform: translateY(-50%) scale(1.1);
   }
 </style>
 
 <script>
   class SelectTheme extends HTMLElement {
-    #closeBtn: HTMLButtonElement | null
-    #dialog: HTMLDialogElement | null
-    #dialogFrame: HTMLDivElement | null
     #openBtn: HTMLButtonElement | null
+    #pickerCard: HTMLDivElement | null
+    #themeSlider: HTMLDivElement | null
+    #themeHandle: HTMLDivElement | null
+    #themeIndex: HTMLSpanElement | null
+    #themes: string[]
     #controller: AbortController
+    #isDragging: boolean = false
 
     constructor() {
       super()
-      this.#openBtn = this.querySelector<HTMLButtonElement>('button[data-open-modal]')
-      this.#closeBtn = this.querySelector<HTMLButtonElement>('button[data-close-modal]')
-      this.#dialog = this.querySelector<HTMLDialogElement>('dialog')
-      this.#dialogFrame = this.querySelector('.dialog-frame')
+      this.#openBtn = this.querySelector<HTMLButtonElement>('[data-open-theme-picker]')
+      this.#pickerCard = this.querySelector<HTMLDivElement>('#theme-picker-card')
+      this.#themeSlider = this.querySelector<HTMLDivElement>('[data-theme-slider]')
+      this.#themeHandle = this.querySelector<HTMLDivElement>('#theme-handle')
+      this.#themeIndex = this.querySelector<HTMLSpanElement>('#theme-index')
+      this.#themes = JSON.parse(this.getAttribute('data-themes') || '[]')
       this.#controller = new AbortController()
 
       // Set up events
       if (this.#openBtn) {
-        this.#openBtn.addEventListener('click', this.openModal)
-        this.#openBtn.disabled = false
-      } else {
-        console.warn('Select theme button not found')
+        this.#openBtn.addEventListener('click', this.togglePicker)
       }
 
-      if (this.#closeBtn) {
-        this.#closeBtn.addEventListener('click', this.closeModal)
-      } else {
-        console.warn('Close button not found')
+      if (this.#themeSlider) {
+        this.#themeSlider.addEventListener('click', this.onThemeSliderClick)
+        this.#themeSlider.addEventListener('mousedown', this.onThemeSliderMouseDown)
       }
 
-      if (this.#dialog) {
-        this.#dialog.addEventListener('close', () => {
-          window.removeEventListener('click', this.onWindowClick)
-        })
-      } else {
-        console.warn('Dialog not found')
-      }
-
-      let themeChangeButtons = this.querySelectorAll('#theme-change-list button')
-      themeChangeButtons?.forEach((button) => {
+      // Theme selection buttons
+      const themeButtons = this.querySelectorAll('button[data-theme]')
+      themeButtons.forEach((button) => {
         button.addEventListener('click', (ev) => {
           ev.preventDefault()
-          let themeId = button.getAttribute('data-theme')
+          ev.stopPropagation()
+          const themeId = button.getAttribute('data-theme')
+          const themeIndex = button.getAttribute('data-theme-index')
           if (themeId) {
-            document.documentElement.setAttribute('data-theme', themeId)
-            localStorage.setItem('data-theme', themeId)
-            this.closeModal()
+            this.selectTheme(themeId, parseInt(themeIndex || '0'))
           }
         })
       })
+
+      // Reset button
+      const resetBtn = this.querySelector('[data-reset-theme]')
+      if (resetBtn) {
+        resetBtn.addEventListener('click', (ev) => {
+          ev.preventDefault()
+          ev.stopPropagation()
+          this.resetToDefault()
+        })
+      }
     }
 
     connectedCallback() {
-      // window events, requires cleanup
-      window.addEventListener('keydown', this.onWindowKeydown, {
+      window.addEventListener('click', this.onWindowClick, {
         signal: this.#controller.signal,
       })
+      window.addEventListener('mousemove', this.onMouseMove, {
+        signal: this.#controller.signal,
+      })
+      window.addEventListener('mouseup', this.onMouseUp, {
+        signal: this.#controller.signal,
+      })
+
+      this.initializePicker()
     }
 
     disconnectedCallback() {
       this.#controller.abort()
     }
 
-    openModal = (event?: MouseEvent) => {
-      if (!this.#dialog) {
-        console.warn('Dialog not found')
-        return
+    togglePicker = (event: MouseEvent) => {
+      event.stopPropagation()
+      if (this.#pickerCard?.classList.contains('show')) {
+        this.closePicker()
+      } else {
+        this.openPicker()
       }
-      this.highlightCurrentTheme()
-      const body = document.querySelector('body')
-      body?.classList.add('overflow-hidden')
-      this.#dialog.showModal()
-      event?.stopPropagation()
-      window.addEventListener('click', this.onWindowClick, {
-        signal: this.#controller.signal,
-      })
     }
 
-    closeModal = () => {
-      const body = document.querySelector('body')
-      body?.classList.remove('overflow-hidden')
-      this.#dialog?.close()
+    openPicker = () => {
+      if (!this.#pickerCard) return
+      this.#pickerCard.classList.add('show')
+      this.highlightCurrentTheme()
+    }
+
+    closePicker = () => {
+      if (!this.#pickerCard) return
+      this.#pickerCard.classList.remove('show')
     }
 
     onWindowClick = (event: MouseEvent) => {
-      // check if it's a link
-      const isLink = 'href' in (event.target || {})
-      // make sure the click is either a link or outside of the dialog
-      if (
-        isLink ||
-        (document.body.contains(event.target as Node) &&
-          !this.#dialogFrame?.contains(event.target as Node))
-      ) {
-        this.closeModal()
+      if (!this.contains(event.target as Node)) {
+        this.closePicker()
       }
     }
 
-    onWindowKeydown = (e: KeyboardEvent) => {
-      if (!this.#dialog) {
-        console.warn('Dialog not found')
-        return
+    initializePicker() {
+      const currentTheme = document.documentElement.getAttribute('data-theme')
+      if (!currentTheme || !this.#themes.length) return
+
+      const themeIndex = this.#themes.indexOf(currentTheme)
+      if (themeIndex !== -1) {
+        this.updateThemeHandle(themeIndex)
+        this.updateThemeIndex(themeIndex)
       }
-      // check if it's the Control+K or ⌘+K shortcut
-      if ((e.metaKey === true || e.ctrlKey === true) && e.key === 'k') {
-        this.#dialog.open ? this.closeModal() : this.openModal()
-        e.preventDefault()
+    }
+
+    selectTheme(themeId: string, themeIndex: number) {
+      document.documentElement.setAttribute('data-theme', themeId)
+      localStorage.setItem('data-theme', themeId)
+      this.updateThemeHandle(themeIndex)
+      this.updateThemeIndex(themeIndex)
+      this.highlightCurrentTheme()
+    }
+
+    resetToDefault() {
+      const defaultTheme = this.#themes[0]
+      if (defaultTheme) {
+        this.selectTheme(defaultTheme, 0)
+      }
+    }
+
+    updateThemeHandle(themeIndex: number) {
+      if (!this.#themeHandle || !this.#themes.length) return
+      const percentage = (themeIndex / (this.#themes.length - 1)) * 100
+      this.#themeHandle.style.left = `${percentage}%`
+    }
+
+    updateThemeIndex(themeIndex: number) {
+      if (!this.#themeIndex) return
+      this.#themeIndex.textContent = themeIndex.toString()
+    }
+
+    onThemeSliderClick = (event: MouseEvent) => {
+      if (!this.#themeSlider || !this.#themes.length) return
+      const rect = this.#themeSlider.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      const percentage = (x / rect.width) * 100
+      const themeIndex = Math.round((percentage / 100) * (this.#themes.length - 1))
+      const clampedIndex = Math.max(0, Math.min(this.#themes.length - 1, themeIndex))
+
+      const themeId = this.#themes[clampedIndex]
+      this.selectTheme(themeId, clampedIndex)
+    }
+
+    onThemeSliderMouseDown = (event: MouseEvent) => {
+      this.#isDragging = true
+      event.preventDefault()
+    }
+
+    onMouseMove = (event: MouseEvent) => {
+      if (!this.#isDragging || !this.#themeSlider || !this.#themes.length) return
+
+      const rect = this.#themeSlider.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100))
+      const themeIndex = Math.round((percentage / 100) * (this.#themes.length - 1))
+      const clampedIndex = Math.max(0, Math.min(this.#themes.length - 1, themeIndex))
+
+      this.updateThemeHandle(clampedIndex)
+      this.updateThemeIndex(clampedIndex)
+    }
+
+    onMouseUp = () => {
+      if (!this.#isDragging) return
+
+      this.#isDragging = false
+      const currentIndex = parseInt(this.#themeIndex?.textContent || '0')
+      const themeId = this.#themes[currentIndex]
+      if (themeId) {
+        this.selectTheme(themeId, currentIndex)
       }
     }
 
     highlightCurrentTheme() {
       const currentTheme = document.documentElement.getAttribute('data-theme')
-      if (!currentTheme) {
-        console.warn('No theme set in data-theme attribute.')
-        return
-      }
-      const themeChangeListItems = this.querySelectorAll('#theme-change-list li')
-      themeChangeListItems?.forEach((listItem) => {
-        let button = listItem.querySelector('button')
-        if (!button) {
-          console.warn('No button found in theme change list item.')
-          return
-        }
-        if (button.getAttribute('data-theme') === currentTheme) {
-          button.classList.add('current-theme')
-        } else {
-          button.classList.remove('current-theme')
-        }
+      if (!currentTheme) return
+
+      // Remove current-theme class from all buttons
+      const allButtons = this.querySelectorAll('button[data-theme]')
+      allButtons.forEach((button) => {
+        button.classList.remove('current-theme')
       })
+
+      // Add current-theme class to current theme button
+      const currentButton = this.querySelector(`button[data-theme="${currentTheme}"]`)
+      if (currentButton) {
+        currentButton.classList.add('current-theme')
+      }
     }
   }
 
